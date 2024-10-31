@@ -26,4 +26,4 @@ jobs:
           pip install ansible ansible-lint
 
       - name: Run Ansible Lint
-        run: ansible-lint playbooks/
+        run: ansible-lint src/playbooks/
