@@ -1,0 +1,49 @@
+services:
+  
+  ubse-001:
+    build:
+      dockerfile: Dockerfile.ubuntu
+      context: .
+    image: ansibleoctopus/ubuntu:latest
+    container_name: ubse-001
+    hostname: ubse-001
+    ports:
+      - 22
+    env_file:
+      - password.env
+    command: ["tail", "-f", "/dev/null"]
+  
+  ubse-002:
+    image: ansibleoctopus/ubuntu:latest
+    container_name: ubse-002
+    hostname: ubse-002
+    ports:
+      - 22
+    env_file:
+      - password.env
+    command: ["tail", "-f", "/dev/null"]
+
+  ubse-003:
+    image: ansibleoctopus/ubuntu:latest
+    container_name: ubse-003
+    hostname: ubse-003
+    ports:
+      - 22
+    env_file:
+      - password.env
+    command: ["tail", "-f", "/dev/null"]
+
+  ansible-control:
+    build:
+      dockerfile: Dockerfile.ansible
+      context: .
+    image: ansibleoctopus/ansible:latest
+    container_name: ansible-control
+    hostname: ansible-control
+    depends_on:
+      - ubse-001
+      - ubse-002
+      - ubse-003
+    volumes:
+      - ./src:/usr/src/app
+    command: ["tail", "-f", "/dev/null"]
