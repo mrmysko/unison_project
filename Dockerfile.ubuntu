@@ -3,7 +3,8 @@ FROM ubuntu:latest
 ARG ROOT_PASSWORD
 
 ENV APT_DEPS \
-    openssh-server
+    openssh-server \
+    docker.io
 
 RUN apt-get update && apt-get install -y ${APT_DEPS}
 
