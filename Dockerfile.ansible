@@ -1,11 +1,12 @@
 FROM python:3.13-bookworm
 
 ENV APT_DEPS \
-    iputils-ping
+    iputils-ping \
+    docker.io
 
 ENV PIP_DEPS \
     ansible \
-    ansible-dev-tools
+    ansible-lint
 
 RUN apt-get update && apt-get install -y ${APT_DEPS}
 
