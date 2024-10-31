@@ -11,6 +11,8 @@ services:
       - 22
     env_file:
       - password.env
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
     command: ["tail", "-f", "/dev/null"]
   
   ubse-002:
@@ -21,6 +23,8 @@ services:
       - 22
     env_file:
       - password.env
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
     command: ["tail", "-f", "/dev/null"]
 
   ubse-003:
@@ -31,6 +35,8 @@ services:
       - 22
     env_file:
       - password.env
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
     command: ["tail", "-f", "/dev/null"]
 
   ansible-control:
@@ -46,4 +52,5 @@ services:
       - ubse-003
     volumes:
       - ./src:/usr/src/app
+      - /var/run/docker.sock:/var/run/docker.sock
     command: ["tail", "-f", "/dev/null"]
