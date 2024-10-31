@@ -1,0 +1,19 @@
+FROM ubuntu:latest
+
+ARG ROOT_PASSWORD
+
+ENV APT_DEPS \
+    openssh-server
+
+RUN apt-get update && apt-get install -y ${APT_DEPS}
+
+RUN mkdir /var/run/sshd && \
+    sed -i 's/^#PermitRootLogin.*/PermitRootLogin yes/' /etc/ssh/sshd_config
+
+COPY ./bin/docker-entrypoint /usr/local/bin/docker-entrypoint
+
+ENTRYPOINT ["docker-entrypoint"]
+
+EXPOSE 22
+
+RUN echo "root:${ROOT_PASSWORD}" | chpasswd
