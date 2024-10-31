@@ -1,0 +1,14 @@
+FROM python:3.13-bookworm
+
+ENV APT_DEPS \
+    iputils-ping
+
+ENV PIP_DEPS \
+    ansible \
+    ansible-dev-tools
+
+RUN apt-get update && apt-get install -y ${APT_DEPS}
+
+RUN pip install ${PIP_DEPS}
+
+WORKDIR /usr/src/app
