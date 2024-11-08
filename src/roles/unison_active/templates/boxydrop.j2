@@ -1,0 +1,13 @@
+root = /boxydrop
+root = ssh://{{ passive_node_ip }}//boxydrop
+
+sshargs = -i {{ remote_unison_key_path }}
+
+# This would ideally be true
+# But unison needs to be able to run chown and chmod.
+owner = false
+group = false
+
+batch = true
+confirmbigdel = false
+fastcheck = true

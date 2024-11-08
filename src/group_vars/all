@@ -1,0 +1,6 @@
+ansible_become_password: "{{ become_pass }}"
+
+controller_unison_key_path: "./unison_priv_key"
+remote_unison_key_path: "/home/{{ unison_user }}/.ssh/unison_key"
+unison_user: "boxydrop"
+passive_node_ip: "{{ hostvars[groups['Passive'][0]].ansible_facts.default_ipv4.address }}"

@@ -1,0 +1,28 @@
+- name: Copy unison private key to nodes
+  ansible.builtin.copy:
+    src: "{{ controller_unison_key_path }}"
+    dest: "{{ remote_unison_key_path }}"
+    owner: "{{ unison_user }}"
+    group: "{{ unison_user }}"
+    mode: '600'
+
+- name: Dynamically create known_hosts (between unison nodes)
+  ansible.builtin.shell: >
+    ssh-keyscan -H4 {{ passive_node_ip }} > /home/{{ unison_user }}/.ssh/known_hosts
+  register: known_hosts
+  changed_when: known_hosts.rc == 0
+
+- name: Copy profile to active nodes
+  ansible.builtin.template:
+    src: templates/boxydrop.j2
+    dest: "/home/{{ unison_user }}/.unison/default.prf"
+    owner: "{{ unison_user }}"
+    group: "{{ unison_user }}"
+    mode: '644'
+
+- name: Create cronjob on boxydrop user
+  ansible.builtin.cron:
+    name: "Unison sync"
+    user: "{{ unison_user }}"
+    minute: "*"
+    job: "unison"

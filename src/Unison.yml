@@ -1,0 +1,65 @@
+- name: Prep controller
+  hosts: localhost
+  connection: local
+  become: false
+  gather_facts: false
+
+  vars_files:
+    - secrets.yml
+    - unison_priv_key.yml
+
+  pre_tasks:
+    - name: Who runs this?
+      ansible.builtin.command: whoami
+      register: whoami
+      changed_when: whoami.rc == 0
+
+    - name: Dynamically create known_hosts (on controller)
+      ansible.builtin.shell: >
+        ssh-keygen -F {{ item }} -f /home/{{ whoami.stdout }}/.ssh/known_hosts ||
+        ssh-keyscan -H4 {{ item }} >> /home/{{ whoami.stdout }}/.ssh/known_hosts
+      loop: "{{ groups['Unison'] }}"
+      register: known_hosts
+      changed_when: known_hosts.rc == 0
+
+    - name: Check if unison_priv_key exists.
+      ansible.builtin.stat:
+        path: "{{ controller_unison_key_path }}"
+      register: unison_key_stat
+
+    - name: Create ssh-key
+      when: not unison_key_stat.stat.exists
+      block:
+        - name: Create key
+          community.crypto.openssh_keypair:
+            path: "{{ controller_unison_key_path }}"
+            type: ed25519
+            mode: '600'
+            comment: "Unison sync key"
+
+        - name: Encrypt key
+          ansible.builtin.command: "ansible-vault encrypt {{ controller_unison_key_path }}"
+          args:
+            removes: "{{ controller_unison_key_path }}"
+
+
+- name: Setup passive nodes
+  hosts: Passive
+  become: true
+  vars_files:
+    - secrets.yml
+
+  roles:
+    - unison_common
+    - docker
+
+
+- name: Setup active nodes
+  hosts: Active
+  become: true
+  vars_files:
+    - secrets.yml
+
+  roles:
+    - unison_common
+    - unison_active

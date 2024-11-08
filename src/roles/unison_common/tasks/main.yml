@@ -1,0 +1,44 @@
+- name: Upgrade packages
+  ansible.builtin.apt:
+    update_cache: true
+    upgrade: true
+
+- name: Change sshd_conf
+  ansible.builtin.lineinfile:
+    path: "/etc/ssh/sshd_config"
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+  loop:
+    - { regexp: "^#*PubkeyAuthentication", line: "PubkeyAuthentication yes" }
+    - { regexp: "^#*PasswordAuthentication", line: "PasswordAuthentication no" }
+    - { regexp: "^#*PermitRootLogin", line: "PermitRootLogin no" }
+  notify:
+    - Restart SSH
+
+- name: Create boxydrop user
+  ansible.builtin.user:
+    name: "{{ unison_user }}"
+    shell: /bin/bash
+
+- name: Copy unison public key to authorized_keys
+  ansible.posix.authorized_key:
+    key: "{{ lookup('file', controller_unison_key_path + '.pub') }}"
+    user: "{{ unison_user }}"
+
+- name: Install Unison
+  ansible.builtin.apt:
+    name: unison
+    state: present
+  notify:
+    - Reboot nodes
+
+- name: Create unison dirs
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    state: directory
+    owner: "{{ unison_user }}"
+    group: "{{ unison_user }}"
+    mode: '{{ item.mode }}'
+  loop:
+    - { path: "/boxydrop", mode: '1777' }
+    - { path: "/home/{{ unison_user }}/.unison", mode: '0755' }

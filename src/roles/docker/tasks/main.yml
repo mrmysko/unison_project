@@ -1,0 +1,40 @@
+---
+- name: Add docker repo
+  ansible.builtin.deb822_repository:
+    name: docker
+    types: deb
+    uris: https://download.docker.com/linux/ubuntu
+    suites: '{{ ansible_distribution_release }}'
+    components: stable
+    architectures: amd64
+    signed_by: https://download.docker.com/linux/ubuntu/gpg
+
+- name: Install docker
+  ansible.builtin.apt:
+    update_cache: true
+    name:
+      - docker-ce
+    state: present
+
+# Gather uid and gid
+- name: Gather uid and gid
+  ansible.builtin.getent:
+    database: passwd
+    key: "{{ unison_user }}"
+
+- name: Setup filebrowser
+  community.docker.docker_container:
+    name: filebrowser
+    image: filebrowser/filebrowser:s6
+    env:
+      FB_NOAUTH: "true"
+      PUID: "{{ getent_passwd[unison_user][1] }}"
+      PGID: "{{ getent_passwd[unison_user][2] }}"
+    ports:
+      - 8080:80
+    volumes:
+      - filebrowser_db:/database/
+      - filebrowser_db:/config/
+      - /boxydrop:/srv
+    state: started
+    restart_policy: unless-stopped
